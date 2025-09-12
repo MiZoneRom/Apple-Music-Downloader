@@ -10,12 +10,95 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     color: #333;
+    overflow: hidden; /* 防止滚动条 */
+}
+
+/* 自定义标题栏样式 */
+.titlebar {
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    -webkit-app-region: drag; /* 允许拖拽窗口 */
+    user-select: none;
+}
+
+.titlebar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0 16px;
+}
+
+.titlebar-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.app-icon {
+    font-size: 16px;
+}
+
+.app-name {
+    font-size: 14px;
+}
+
+.titlebar-controls {
+    display: flex;
+    gap: 0;
+    -webkit-app-region: no-drag; /* 按钮区域不允许拖拽 */
+}
+
+.titlebar-button {
+    width: 46px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 12px;
+}
+
+.titlebar-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.titlebar-button.minimize-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.titlebar-button.maximize-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.titlebar-button.close-btn:hover {
+    background: #e81123;
+    color: white;
+}
+
+.titlebar-button svg {
+    width: 10px;
+    height: 10px;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    height: calc(100vh - 32px); /* 减去标题栏高度 */
+    overflow-y: auto; /* 允许内容滚动 */
 }
 
 /* 头部样式 */
@@ -346,15 +429,38 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
+    background: rgba(255, 255, 255, 0.3);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* 无边框窗口优化 */
+body {
+    -webkit-user-select: none; /* 防止文本选择 */
+    user-select: none;
+}
+
+/* 允许输入框和按钮区域选择文本 */
+input, textarea, .progress-log {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* 窗口拖拽区域优化 */
+.titlebar {
+    cursor: move;
+}
+
+/* 确保内容区域可以滚动 */
+.main-content {
+    max-height: calc(100vh - 200px); /* 减去标题栏和头部高度 */
+    overflow-y: auto;
 }

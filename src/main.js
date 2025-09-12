@@ -9,16 +9,25 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
+        frame: false, // 移除窗口边框和标题栏
+        titleBarStyle: 'hidden', // 隐藏标题栏
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
             enableRemoteModule: true
         },
         icon: path.join(__dirname, '../assets/icon.png'),
-        title: 'Apple Music Downloader'
+        title: 'Apple Music Downloader',
+        backgroundColor: '#667eea', // 设置背景色以匹配应用主题
+        show: false // 先不显示，等加载完成后再显示
     });
 
     mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
+
+    // 页面加载完成后显示窗口
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.show();
+    });
 
     // 开发模式下打开开发者工具
     // if (process.argv.includes('--dev')) {
@@ -154,4 +163,21 @@ ipcMain.handle('check-gamdl', async () => {
             resolve({ installed: false });
         });
     });
+});
+
+// 窗口控制按钮
+ipcMain.handle('window-minimize', () => {
+    mainWindow.minimize();
+});
+
+ipcMain.handle('window-maximize', () => {
+    if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+    } else {
+        mainWindow.maximize();
+    }
+});
+
+ipcMain.handle('window-close', () => {
+    mainWindow.close();
 });

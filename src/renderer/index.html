@@ -7,6 +7,33 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- 自定义标题栏 -->
+    <div class="titlebar">
+        <div class="titlebar-content">
+            <div class="titlebar-title">
+                <span class="app-icon">🎵</span>
+                <span class="app-name">Apple Music Downloader</span>
+            </div>
+            <div class="titlebar-controls">
+                <button class="titlebar-button minimize-btn" id="minimize-btn" title="最小化">
+                    <svg width="10" height="10" viewBox="0 0 10 10">
+                        <rect x="0" y="4" width="10" height="2" fill="currentColor"/>
+                    </svg>
+                </button>
+                <button class="titlebar-button maximize-btn" id="maximize-btn" title="最大化">
+                    <svg width="10" height="10" viewBox="0 0 10 10">
+                        <rect x="0" y="0" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1"/>
+                    </svg>
+                </button>
+                <button class="titlebar-button close-btn" id="close-btn" title="关闭">
+                    <svg width="10" height="10" viewBox="0 0 10 10">
+                        <path d="M0,0 L10,10 M10,0 L0,10" stroke="currentColor" stroke-width="1"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <header class="header">
             <h1>🎵 Apple Music Downloader</h1>

@@ -30,6 +30,19 @@ class AppleMusicDownloader {
             this.validateForm();
         });
 
+        // 窗口控制按钮
+        document.getElementById('minimize-btn').addEventListener('click', () => {
+            ipcRenderer.invoke('window-minimize');
+        });
+
+        document.getElementById('maximize-btn').addEventListener('click', () => {
+            ipcRenderer.invoke('window-maximize');
+        });
+
+        document.getElementById('close-btn').addEventListener('click', () => {
+            ipcRenderer.invoke('window-close');
+        });
+
         // 监听下载进度
         ipcRenderer.on('download-progress', (event, data) => {
             this.handleDownloadProgress(data);
@@ -261,7 +274,6 @@ class AppleMusicDownloader {
 
     resetForm() {
         document.getElementById('music-url').value = '';
-        document.getElementById('output-path').value = '';
         document.getElementById('quality-select').value = 'high';
         this.validateForm();
     }
