@@ -2,7 +2,6 @@ const { ipcRenderer } = require('electron');
 
 class AppleMusicDownloader {
     constructor() {
-        this.downloadHistory = JSON.parse(localStorage.getItem('downloadHistory') || '[]');
         this.currentDownload = null;
         this.init();
     }
@@ -10,7 +9,6 @@ class AppleMusicDownloader {
     init() {
         this.bindEvents();
         this.checkGamdlStatus();
-        this.loadDownloadHistory();
         this.setDefaultDownloadPath();
     }
 
@@ -192,15 +190,6 @@ class AppleMusicDownloader {
         document.getElementById('progress-text').textContent = '下载完成！';
         this.addToProgressLog('下载成功完成！');
 
-        // 添加到下载历史
-        const historyItem = {
-            ...this.currentDownload,
-            status: 'success',
-            endTime: new Date(),
-            message: result.message
-        };
-        this.addToDownloadHistory(historyItem);
-
         this.showNotification('下载完成！', 'success');
         this.resetForm();
     }
@@ -208,16 +197,6 @@ class AppleMusicDownloader {
     handleDownloadError(error) {
         document.getElementById('progress-text').textContent = '下载失败';
         this.addToProgressLog(`错误: ${error.message || error.error || '未知错误'}`);
-
-        // 添加到下载历史
-        const historyItem = {
-            ...this.currentDownload,
-            status: 'error',
-            endTime: new Date(),
-            message: error.message || '下载失败'
-        };
-        this.addToDownloadHistory(historyItem);
-
         this.showNotification('下载失败', 'error');
     }
 
@@ -227,39 +206,6 @@ class AppleMusicDownloader {
         logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
         progressLog.appendChild(logEntry);
         progressLog.scrollTop = progressLog.scrollHeight;
-    }
-
-    addToDownloadHistory(item) {
-        this.downloadHistory.unshift(item);
-        // 只保留最近 50 条记录
-        if (this.downloadHistory.length > 50) {
-            this.downloadHistory = this.downloadHistory.slice(0, 50);
-        }
-        localStorage.setItem('downloadHistory', JSON.stringify(this.downloadHistory));
-        this.loadDownloadHistory();
-    }
-
-    loadDownloadHistory() {
-        const historyList = document.getElementById('history-list');
-        
-        if (this.downloadHistory.length === 0) {
-            historyList.innerHTML = '<div class="history-empty">暂无下载记录</div>';
-            return;
-        }
-
-        historyList.innerHTML = this.downloadHistory.map(item => `
-            <div class="history-item">
-                <div class="history-info">
-                    <div class="history-title">${this.extractTitleFromUrl(item.url)}</div>
-                    <div class="history-details">
-                        ${item.quality} | ${new Date(item.startTime).toLocaleString()}
-                    </div>
-                </div>
-                <div class="history-status ${item.status}">
-                    ${item.status === 'success' ? '成功' : '失败'}
-                </div>
-            </div>
-        `).join('');
     }
 
     extractTitleFromUrl(url) {
