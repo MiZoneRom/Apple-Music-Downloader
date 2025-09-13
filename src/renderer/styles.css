@@ -5,13 +5,26 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   color: #333;
-  overflow: hidden; /* 防止滚动条 */
+  width: 100%;
+  height: 100%;
+}
+
+.app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;
 }
 
 /* 自定义标题栏样式 */
@@ -97,15 +110,15 @@ body {
 .container {
   margin: 0 auto;
   padding: 20px;
-  height: calc(100vh - 32px); /* 减去标题栏高度 */
   overflow-y: auto; /* 允许内容滚动 */
+  flex: 1;
+  height: 0;
+  width: 100%;
 }
 
 /* 卡片样式 */
-.status-card,
 .download-card,
-.progress-card,
-.history-card {
+.progress-card {
   background: white;
   border-radius: 12px;
   padding: 24px;
@@ -114,57 +127,18 @@ body {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.status-card:hover,
 .download-card:hover,
-.progress-card:hover,
-.history-card:hover {
-  transform: translateY(-2px);
+.progress-card:hover {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
-.status-card h3,
 .download-card h3,
-.progress-card h3,
-.history-card h3 {
+.progress-card h3 {
   margin-bottom: 20px;
   color: #2c3e50;
   font-size: 1.3rem;
   border-bottom: 2px solid #f8f9fa;
   padding-bottom: 10px;
-}
-
-/* 状态区域 */
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.status-label {
-  font-weight: 600;
-  color: #555;
-}
-
-.status-value {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.status-value.installed {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status-value.not-installed {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.status-value.checking {
-  background: #fff3cd;
-  color: #856404;
 }
 
 /* 表单样式 */
@@ -179,8 +153,7 @@ body {
   color: #555;
 }
 
-.form-group input,
-.form-group select {
+.form-group input {
   width: 100%;
   padding: 12px 16px;
   border: 2px solid #e9ecef;
@@ -189,8 +162,7 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-group input:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -264,114 +236,89 @@ body {
   display: inline;
 }
 
-/* 进度条样式 */
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 15px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  width: 0%;
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  text-align: center;
-  font-weight: 600;
-  color: #555;
-  margin-bottom: 15px;
-}
-
 .progress-log {
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 6px;
   padding: 12px;
-  max-height: 200px;
+  max-height: 700px;
   overflow-y: auto;
   font-family: "Courier New", monospace;
   font-size: 0.9rem;
   color: #666;
 }
 
-/* 历史记录样式 */
-.history-list {
-  max-height: 300px;
-  overflow-y: auto;
+.log-entry {
+  margin-bottom: 2px;
+  line-height: 1.4;
+  word-break: break-all;
 }
 
-.history-item {
+.log-entry:last-child {
+  margin-bottom: 0;
+}
+
+/* 当前歌曲信息样式 */
+.current-song-info {
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.song-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  word-break: break-word;
+}
+
+.song-progress {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* 下载统计信息样式 */
+.download-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.stat-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #f8f9fa;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.history-item:last-child {
-  border-bottom: none;
-}
-
-.history-info {
-  flex: 1;
-}
-
-.history-title {
+.stat-label {
   font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 4px;
-}
-
-.history-details {
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
-  color: #666;
 }
 
-.history-status {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.history-status.success {
-  background: #d4edda;
-  color: #155724;
-}
-
-.history-status.error {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.history-empty {
-  text-align: center;
-  color: #999;
-  font-style: italic;
-  padding: 40px 0;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .container {
-    padding: 15px;
-  }
-
-  .path-input-group {
-    flex-direction: column;
-  }
-
-  .history-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
+.stat-value {
+  font-weight: 700;
+  color: white;
+  font-size: 0.95rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* 动画效果 */
@@ -388,8 +335,7 @@ body {
 
 .status-card,
 .download-card,
-.progress-card,
-.history-card {
+.progress-card {
   animation: fadeIn 0.5s ease;
 }
 
@@ -431,8 +377,36 @@ textarea,
   cursor: move;
 }
 
-/* 确保内容区域可以滚动 */
-.main-content {
-  max-height: calc(100vh - 200px); /* 减去标题栏和头部高度 */
-  overflow-y: auto;
+.progress-footer {
+  background-color: white;
+  padding: 10px 20px;
+}
+
+.progress-footer h3 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+/* 进度条样式 */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 15px;
 }

@@ -30,8 +30,8 @@ function createWindow() {
   });
 
   // 开发模式下打开开发者工具
-  // if (process.argv.includes('--dev')) {
-  //     mainWindow.webContents.openDevTools();
+  // if (process.argv.includes("--dev")) {
+  //   mainWindow.webContents.openDevTools({ mode: "detach" });
   // }
 }
 
@@ -49,7 +49,7 @@ app.on("activate", () => {
   }
 });
 
-const downloadMusic = (url, outputPath, quality) => {
+const downloadMusic = (url, outputPath) => {
   return new Promise((resolve, reject) => {
     try {
       const cookiesPath = path.join(__dirname, "../cookies.txt");
@@ -66,7 +66,6 @@ const downloadMusic = (url, outputPath, quality) => {
           outputPath || path.join(__dirname, "../download"),
           "--language",
           "zh-CN",
-          "--read-urls-as-txt",
         ],
         {
           stdio: ["pipe", "pipe", "pipe"],
@@ -115,7 +114,7 @@ const downloadMusic = (url, outputPath, quality) => {
             needReDownload: needReDownload,
           });
         } else {
-          reject({
+          resolve({
             success: false,
             message: "下载失败",
             error: errorOutput,
@@ -124,14 +123,14 @@ const downloadMusic = (url, outputPath, quality) => {
       });
 
       gamdlProcess.on("error", (error) => {
-        reject({
+        resolve({
           success: false,
           message: "启动下载进程失败",
           error: error.message,
         });
       });
     } catch (error) {
-      reject({
+      resolve({
         success: false,
         message: "下载过程中发生错误",
         error: error.message,
@@ -141,20 +140,27 @@ const downloadMusic = (url, outputPath, quality) => {
 };
 
 // 处理下载请求
-ipcMain.handle(
-  "download-music",
-  async (event, { url, outputPath, quality }) => {
-    while (true) {
-      const result = await downloadMusic(url, outputPath, quality);
+ipcMain.handle("download-music", async (event, { url, outputPath }) => {
+  let reTryCount = 0;
 
-      if (result.needReDownload) {
-        continue;
-      }
+  while (true) {
+    const result = await downloadMusic(url, outputPath);
 
-      return result;
+    if (result.needReDownload) {
+      continue;
     }
+
+    if (!result.success) {
+      reTryCount++;
+
+      if (reTryCount > 3) {
+        return result;
+      }
+    }
+
+    return result;
   }
-);
+});
 
 // 选择下载目录
 ipcMain.handle("select-download-folder", async () => {

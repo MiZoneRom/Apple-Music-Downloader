@@ -5,68 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Apple Music Downloader</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="./vue.global.js"></script>
   </head>
   <body>
-    <!-- 自定义标题栏 -->
-    <div class="titlebar">
-      <div class="titlebar-content">
-        <div class="titlebar-title">
-          <span class="app-icon">🎵</span>
-          <span class="app-name">Apple Music Downloader</span>
-        </div>
-        <div class="titlebar-controls">
-          <button
-            class="titlebar-button minimize-btn"
-            id="minimize-btn"
-            title="最小化"
-          >
-            <svg width="10" height="10" viewBox="0 0 10 10">
-              <rect x="0" y="4" width="10" height="2" fill="currentColor" />
-            </svg>
-          </button>
-          <button
-            class="titlebar-button maximize-btn"
-            id="maximize-btn"
-            title="最大化"
-          >
-            <svg width="10" height="10" viewBox="0 0 10 10">
-              <rect
-                x="0"
-                y="0"
-                width="10"
-                height="10"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1"
-              />
-            </svg>
-          </button>
-          <button class="titlebar-button close-btn" id="close-btn" title="关闭">
-            <svg width="10" height="10" viewBox="0 0 10 10">
-              <path
-                d="M0,0 L10,10 M10,0 L0,10"
-                stroke="currentColor"
-                stroke-width="1"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-      <main class="main-content">
-        <!-- 状态检查区域 -->
-        <div class="status-section">
-          <div class="status-card">
-            <h3>系统状态</h3>
-            <div id="gamdl-status" class="status-item">
-              <span class="status-label">gamdl 状态:</span>
-              <span id="gamdl-status-text" class="status-value">检查中...</span>
-            </div>
+    <div class="app" id="app">
+      <!-- 自定义标题栏 -->
+      <div class="titlebar">
+        <div class="titlebar-content">
+          <div class="titlebar-title">
+            <span class="app-icon">🎵</span>
+            <span class="app-name">Apple Music Downloader</span>
+          </div>
+          <div class="titlebar-controls">
+            <button
+              class="titlebar-button minimize-btn"
+              @click="minimizeWindow"
+              title="最小化"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <rect x="0" y="4" width="10" height="2" fill="currentColor" />
+              </svg>
+            </button>
+            <button
+              class="titlebar-button maximize-btn"
+              @click="maximizeWindow"
+              title="最大化"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <rect
+                  x="0"
+                  y="0"
+                  width="10"
+                  height="10"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1"
+                />
+              </svg>
+            </button>
+            <button
+              class="titlebar-button close-btn"
+              @click="closeWindow"
+              title="关闭"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <path
+                  d="M0,0 L10,10 M10,0 L0,10"
+                  stroke="currentColor"
+                  stroke-width="1"
+                />
+              </svg>
+            </button>
           </div>
         </div>
+      </div>
 
+      <div class="container">
         <!-- 下载区域 -->
         <div class="download-section">
           <div class="download-card">
@@ -77,17 +71,10 @@
               <input
                 type="url"
                 id="music-url"
+                v-model="musicUrl"
                 placeholder="https://music.apple.com/..."
+                @input="validateForm"
               />
-            </div>
-
-            <div class="form-group">
-              <label for="quality-select">音质选择:</label>
-              <select id="quality-select">
-                <option value="high">高质量 (320kbps)</option>
-                <option value="medium">中等质量 (256kbps)</option>
-                <option value="low">低质量 (128kbps)</option>
-              </select>
             </div>
 
             <div class="form-group">
@@ -96,10 +83,11 @@
                 <input
                   type="text"
                   id="output-path"
+                  v-model="outputPath"
                   placeholder="正在设置默认下载路径..."
                   readonly
                 />
-                <button id="select-folder-btn" class="btn btn-secondary">
+                <button @click="selectDownloadFolder" class="btn btn-secondary">
                   选择文件夹
                 </button>
               </div>
@@ -109,30 +97,73 @@
             </div>
 
             <div class="form-actions">
-              <button id="download-btn" class="btn btn-primary" disabled>
+              <button
+                @click="startDownload"
+                class="btn btn-primary"
+                :disabled="!isFormValid || isDownloading"
+                :class="{ loading: isDownloading }"
+              >
                 <span class="btn-text">开始下载</span>
-                <span class="btn-loading" style="display: none">下载中...</span>
+                <span class="btn-loading" v-show="isDownloading"
+                  >下载中...</span
+                >
               </button>
             </div>
           </div>
         </div>
 
-        <!-- 进度区域 -->
-        <div
-          class="progress-section"
-          id="progress-section"
-          style="display: none"
-        >
-          <div class="progress-card">
-            <h3>下载进度</h3>
-            <div class="progress-bar">
-              <div class="progress-fill" id="progress-fill"></div>
+        <div class="progress-section" v-show="showProgress">
+          <!-- 当前歌曲信息 -->
+          <div class="current-song-info" v-show="currentSong.title">
+            <div class="song-title">{{ currentSong.title }}</div>
+            <div class="song-progress">{{ currentSong.progress }}</div>
+          </div>
+
+          <!-- 下载统计信息 -->
+          <div class="download-stats" v-show="showStats">
+            <div class="stat-item">
+              <span class="stat-label">文件大小:</span>
+              <span class="stat-value">{{ downloadStats.fileSize }}</span>
             </div>
-            <div class="progress-text" id="progress-text">准备下载...</div>
-            <div class="progress-log" id="progress-log"></div>
+            <div class="stat-item">
+              <span class="stat-label">下载速度:</span>
+              <span class="stat-value">{{ downloadStats.speed }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">剩余时间:</span>
+              <span class="stat-value">{{ downloadStats.eta }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">已用时间:</span>
+              <span class="stat-value">{{ downloadStats.elapsed }}</span>
+            </div>
+          </div>
+
+          <div ref="progressLog" class="progress-log">
+            <div
+              v-for="(log, index) in progressLogs"
+              :key="index"
+              class="log-entry"
+            >
+              {{ log }}
+            </div>
           </div>
         </div>
-      </main>
+      </div>
+
+      <div class="footer">
+        <!-- 进度区域 -->
+        <div class="progress-footer">
+          <h3>下载进度</h3>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              :style="{ width: progressPercentage + '%' }"
+            ></div>
+          </div>
+          <div class="progress-text">{{ progressText }}</div>
+        </div>
+      </div>
     </div>
 
     <script src="renderer.js"></script>
