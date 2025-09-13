@@ -156,6 +156,8 @@ ipcMain.handle("download-music", async (event, { url, outputPath }) => {
       if (reTryCount > 3) {
         return result;
       }
+
+      continue;
     }
 
     return result;
