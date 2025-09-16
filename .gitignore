@@ -65,3 +65,5 @@ packages/
 download/
 cookies.txt
 gamdl*
+log.txt
+download_record.txt

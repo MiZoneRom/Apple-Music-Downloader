@@ -19,7 +19,7 @@ function createWindow() {
     icon: path.join(__dirname, "../assets/icon.png"),
     title: "Apple Music Downloader",
     backgroundColor: "#667eea", // 设置背景色以匹配应用主题
-    show: false, // 先不显示，等加载完成后再显示
+    // show: false, // 先不显示，等加载完成后再显示
   });
 
   mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
@@ -48,6 +48,32 @@ app.on("activate", () => {
     createWindow();
   }
 });
+
+/**
+ * 下载日志
+ * @param {*} message
+ */
+const writeLocalLog = (message) => {
+  const logPath = path.join(__dirname, "../log.txt");
+
+  if (!fs.existsSync(logPath)) {
+    fs.writeFileSync(logPath, "");
+  }
+
+  fs.appendFileSync(logPath, "\n");
+  fs.appendFileSync(logPath, new Date().toISOString());
+  fs.appendFileSync(logPath, message);
+};
+
+/**
+ * 下载记录
+ * @param {*} message
+ */
+const writeDownloadRecord = (message) => {
+  const logPath = path.join(__dirname, "../download_record.txt");
+
+  fs.writeFileSync(logPath, message);
+};
 
 const downloadMusic = (url, outputPath) => {
   return new Promise((resolve, reject) => {
@@ -141,6 +167,33 @@ const downloadMusic = (url, outputPath) => {
 
 // 处理下载请求
 ipcMain.handle("download-music", async (event, { url, outputPath }) => {
+  const urls = url.split("\n");
+  const needDownloadUrls = [...urls];
+  const errorUrls = [];
+
+  for (const element of urls) {
+    const result = await downloadMusicByUrl(element, outputPath);
+
+    if (!result.success) {
+      errorUrls.push(element);
+    } else {
+      needDownloadUrls.splice(needDownloadUrls.indexOf(element), 1);
+    }
+
+    writeDownloadRecord(needDownloadUrls.join("\n"));
+  }
+
+  if (errorUrls.length > 0) {
+    writeLocalLog(`下载失败: ${errorUrls.join("\n")}`);
+  }
+
+  return {
+    success: errorUrls.length === 0,
+    errorUrls: errorUrls,
+  };
+});
+
+const downloadMusicByUrl = async (url, outputPath) => {
   let reTryCount = 0;
 
   while (true) {
@@ -153,16 +206,21 @@ ipcMain.handle("download-music", async (event, { url, outputPath }) => {
     if (!result.success) {
       reTryCount++;
 
-      if (reTryCount > 3) {
+      if (reTryCount > 10) {
         return result;
       }
+
+      mainWindow.webContents.send("download-progress", {
+        type: "error",
+        data: `下载异常，正在进行第 ${reTryCount} 次重试`,
+      });
 
       continue;
     }
 
     return result;
   }
-});
+};
 
 // 选择下载目录
 ipcMain.handle("select-download-folder", async () => {

@@ -19,6 +19,7 @@ createApp({
     // 下载进度
     const progressPercentage = ref(0);
     const progressText = ref("准备下载...");
+    /** @type {Ref<string[]>} */
     const progressLogs = ref([]);
     const progressLog = ref(null);
 
@@ -153,6 +154,10 @@ createApp({
     };
 
     const handleDownloadProgress = (data) => {
+      if (progressLog.value.length > 1000) {
+        progressLogs.value.splice(0, 500);
+      }
+
       progressLogs.value.push(data.data);
 
       nextTick(() => {
@@ -319,9 +324,13 @@ createApp({
 
     const handleDownloadError = (error) => {
       progressText.value = "下载失败";
+
       progressLogs.value.push(
-        `错误: ${error.message || error.error || "未知错误"}`
+        `错误: 下载失败的歌曲: ${error.errorUrls.join("\n")}`
       );
+
+      musicUrl.value = error.errorUrls.join("\n");
+
       showNotification("下载失败", "error");
     };
 
