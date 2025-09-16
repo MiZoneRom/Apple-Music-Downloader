@@ -49,12 +49,20 @@ app.on("activate", () => {
   }
 });
 
+const resolvePath = (targetPath) => {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, targetPath);
+  }
+
+  return path.join(__dirname, targetPath);
+};
+
 /**
  * 下载日志
  * @param {*} message
  */
 const writeLocalLog = (message) => {
-  const logPath = path.join(__dirname, "../log.txt");
+  const logPath = resolvePath("../log.txt");
 
   if (!fs.existsSync(logPath)) {
     fs.writeFileSync(logPath, "");
@@ -70,8 +78,7 @@ const writeLocalLog = (message) => {
  * @param {*} message
  */
 const writeDownloadRecord = (message) => {
-  const logPath = path.join(__dirname, "../download_record.txt");
-
+  const logPath = resolvePath("../download_record.txt");
   fs.writeFileSync(logPath, message);
 };
 
@@ -79,15 +86,7 @@ const downloadMusic = (url, outputPath) => {
   return new Promise((resolve, reject) => {
     try {
       // Handle both development and packaged environments
-      let cookiesPath;
-
-      if (app.isPackaged) {
-        // In packaged app, cookies.txt should be in the same directory as the executable
-        cookiesPath = path.join(process.resourcesPath, "cookies.txt");
-      } else {
-        // In development, use the project root
-        cookiesPath = path.join(__dirname, "../cookies.txt");
-      }
+      let cookiesPath = resolvePath("../cookies.txt");
 
       // Check if cookies file exists
       if (!fs.existsSync(cookiesPath)) {
@@ -114,7 +113,7 @@ const downloadMusic = (url, outputPath) => {
           "--cookies-path",
           cookiesPath,
           "--output-path",
-          outputPath || path.join(__dirname, "../download"),
+          outputPath || resolvePath("../download"),
           "--language",
           "zh-CN",
         ],
@@ -252,7 +251,7 @@ ipcMain.handle("select-download-folder", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ["openDirectory"],
     title: "选择下载目录",
-    defaultPath: path.join(__dirname, "../download"),
+    defaultPath: resolvePath("../download"),
   });
 
   if (!result.canceled && result.filePaths.length > 0) {
@@ -263,7 +262,7 @@ ipcMain.handle("select-download-folder", async () => {
 
 // 获取默认下载路径
 ipcMain.handle("get-default-download-path", async () => {
-  const defaultPath = path.join(__dirname, "../download");
+  const defaultPath = resolvePath("../download");
 
   // 确保下载目录存在
   if (!fs.existsSync(defaultPath)) {
