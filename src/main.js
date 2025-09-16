@@ -78,7 +78,32 @@ const writeDownloadRecord = (message) => {
 const downloadMusic = (url, outputPath) => {
   return new Promise((resolve, reject) => {
     try {
-      const cookiesPath = path.join(__dirname, "../cookies.txt");
+      // Handle both development and packaged environments
+      let cookiesPath;
+
+      if (app.isPackaged) {
+        // In packaged app, cookies.txt should be in the same directory as the executable
+        cookiesPath = path.join(process.resourcesPath, "cookies.txt");
+      } else {
+        // In development, use the project root
+        cookiesPath = path.join(__dirname, "../cookies.txt");
+      }
+
+      // Check if cookies file exists
+      if (!fs.existsSync(cookiesPath)) {
+        const errorMessage = `Cookies file not found at "${cookiesPath}". Please ensure the cookies.txt file is in the correct location.`;
+        mainWindow.webContents.send("download-progress", {
+          type: "error",
+          data: errorMessage,
+        });
+        resolve({
+          success: false,
+          message: errorMessage,
+          error: "Cookies file not found",
+        });
+        return;
+      }
+
       // 使用 gamdl 进行下载
       const gamdlProcess = spawn(
         "python",
